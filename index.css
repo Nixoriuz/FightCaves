@@ -8,6 +8,8 @@ body {
 }
 .main-content {
     background-color: #181818;
+    transform-origin: top left;
+    transition: transform 0.2s ease-out;
 }
 .card {
     background-color: #2c2c2c;
@@ -80,10 +82,9 @@ body {
     transform: translate(-50%, -50%) scale(1.2);
 }
 
-/* New Responsive Grid for Monster Cards */
 .wave-grid-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem; /* Equivalent to gap-4 */
+    gap: 1rem;
 }
 
