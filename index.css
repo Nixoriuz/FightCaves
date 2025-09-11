@@ -30,8 +30,9 @@ body {
     height: auto;
 }
 .potion-img {
-    max-width: 50px;
-    height: auto;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
 }
 .content-view {
     display: none;
@@ -78,3 +79,11 @@ body {
     box-shadow: 0 0 15px 5px rgba(255, 255, 0, 0.7);
     transform: translate(-50%, -50%) scale(1.2);
 }
+
+/* New Responsive Grid for Monster Cards */
+.wave-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem; /* Equivalent to gap-4 */
+}
+
