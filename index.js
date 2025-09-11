@@ -1,20 +1,50 @@
 let currentWave = 1;
 const totalWaves = 63;
 
+// DOM Element references
 const contentTitle = document.getElementById('main-content-title');
 const waveNavigation = document.getElementById('wave-navigation');
 const sidebarPrevBtn = document.getElementById('sidebar-prev-btn');
 const sidebarNextBtn = document.getElementById('sidebar-next-btn');
 const menuToggle = document.getElementById('menu-toggle');
 const sidebar = document.getElementById('sidebar');
+const scaleSlider = document.getElementById('scale-slider');
+const scaleValue = document.getElementById('scale-value');
+const mainContent = document.querySelector('.main-content');
 
+// Event Listeners
 if (menuToggle) {
     menuToggle.addEventListener('click', () => {
         sidebar.classList.toggle('-translate-x-full');
     });
 }
 
+if(sidebarPrevBtn) {
+    sidebarPrevBtn.addEventListener('click', () => {
+        if (currentWave > 1) {
+            showWaveDetails(currentWave - 1);
+        }
+    });
+}
 
+if(sidebarNextBtn) {
+    sidebarNextBtn.addEventListener('click', () => {
+        if (currentWave < totalWaves) {
+            showWaveDetails(currentWave + 1);
+        }
+    });
+}
+
+
+if (scaleSlider && scaleValue && mainContent) {
+    scaleSlider.addEventListener('input', (event) => {
+        const scale = event.target.value;
+        applyScale(scale);
+        localStorage.setItem('savedScale', scale);
+    });
+}
+
+// Data
 const monsters = {
     'tz-kih': { name: 'Tz-Kih', level: 22, img: 'https://oldschool.runescape.wiki/images/Tz-Kih.png', info: 'Attacks with melee and drains prayer. Keep your distance! Too small to be safespotted by rocks.' },
     'tz-kek': { name: 'Tz-Kek', level: 45, img: 'https://oldschool.runescape.wiki/images/Tz-Kek_(level_45).png', info: 'Melee attacker. Can be trapped behind rocks. Its spawn location on Wave 3 determines Jad\'s spawn.' },
@@ -50,6 +80,13 @@ const waveSpawnLocations = [
     ['SE', 'SW', 'NW', 'SE'], ['SE', 'SW', 'SE'], ['C', 'NE', 'NW', 'SE', 'SW'], ['NE']
 ];
 
+// Functions
+function applyScale(scale) {
+    if (scaleValue) scaleValue.textContent = `${scale}%`;
+    if (mainContent) mainContent.style.transform = `scale(${scale / 100})`;
+    if (scaleSlider) scaleSlider.value = scale;
+}
+
 function showContent(viewId, clickedButton) {
     document.querySelectorAll('.content-view').forEach(view => view.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
@@ -65,10 +102,11 @@ function showContent(viewId, clickedButton) {
     } else {
          waveNavigation.classList.remove('visible');
     }
-    
+
     if (window.innerWidth < 768) {
         sidebar.classList.add('-translate-x-full');
     }
+    localStorage.setItem('savedView', viewId);
 }
 
 function updateArrowVisibility() {
@@ -79,6 +117,8 @@ function updateArrowVisibility() {
 function showWaveDetails(waveNum) {
     if (waveNum < 1 || waveNum > totalWaves) return;
     currentWave = waveNum;
+    localStorage.setItem('savedWave', waveNum);
+
     
     const waveDetailsContainer = document.getElementById('wave-details');
     const currentWaveSpawns = waveSpawns[waveNum - 1];
@@ -102,7 +142,7 @@ function showWaveDetails(waveNum) {
                 </div>
             </div>`;
     } else {
-        content += '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">';
+        content += '<div class="wave-grid-container">';
         currentWaveSpawns.forEach(monsterKey => {
             const monster = monsters[monsterKey];
             content += `
@@ -119,6 +159,7 @@ function showWaveDetails(waveNum) {
     
     waveDetailsContainer.innerHTML = content;
     
+    // Highlight spawn points
     document.querySelectorAll('.spawn-marker').forEach(marker => marker.classList.remove('highlight-spawn'));
     const spawnsForWave = waveSpawnLocations[waveNum - 1];
     if (spawnsForWave) {
@@ -133,19 +174,22 @@ function showWaveDetails(waveNum) {
     updateArrowVisibility();
 }
 
-sidebarPrevBtn.addEventListener('click', () => {
-    if (currentWave > 1) {
-        showWaveDetails(currentWave - 1);
-    }
-});
-sidebarNextBtn.addEventListener('click', () => {
-    if (currentWave < totalWaves) {
-        showWaveDetails(currentWave + 1);
-    }
-});
-
-// Initial load
+// Initial Load Logic
 document.addEventListener('DOMContentLoaded', () => {
-    showContent('setup-view', document.querySelector('.nav-btn.active'));
-    showWaveDetails(1);
+    const savedScale = localStorage.getItem('savedScale') || 100;
+    const savedWave = parseInt(localStorage.getItem('savedWave'), 10) || 1;
+    const savedView = localStorage.getItem('savedView') || 'setup-view';
+
+    applyScale(savedScale);
+    
+    // Restore the last active view
+    const savedViewButton = document.querySelector(`.nav-btn[onclick*="'${savedView}'"]`);
+    if (savedViewButton) {
+        showContent(savedView, savedViewButton);
+    } else {
+         showContent('setup-view', document.querySelector('.nav-btn.active'));
+    }
+
+    showWaveDetails(savedWave);
 });
+```eof
