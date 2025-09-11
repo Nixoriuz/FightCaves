@@ -1,1 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSRS Fire Cape Noob Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://raw.githubusercontent.com/Nixoriuz/FightCaves/refs/heads/main/index.css">
+</head>
+<body class="bg-gray-900">
+    <div class="relative min-h-screen md:flex">
+        <!-- Mobile menu button -->
+        <div class="md:hidden flex justify-between items-center bg-gray-800 p-2 text-white">
+            <h1 class="text-xl font-bold">Noobs Firecape</h1>
+            <button id="menu-toggle" class="p-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar w-64 p-4 flex-col fixed md:relative h-full z-20 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <h1 class="text-2xl font-bold text-white mb-8 hidden md:block">Noobs Firecape</h1>
+            <nav class="flex flex-col space-y-2">
+                <button onclick="showContent('setup-view', this)" class="nav-btn text-white py-2 px-4 rounded-lg text-left active">Recommended Setup</button>
+                <button onclick="showContent('waves-view', this)" class="nav-btn text-white py-2 px-4 rounded-lg text-left">Waves</button>
+                 <div id="wave-navigation" class="justify-between items-center mt-2 px-4">
+                    <span id="sidebar-prev-btn" class="arrow-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7 M10 19l-7-7 7-7" />
+                        </svg>
+                    </span>
+                    <span id="sidebar-next-btn" class="arrow-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7 M14 5l7 7-7 7" />
+                        </svg>
+                    </span>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content flex-1 p-4 md:p-8 overflow-y-auto">
+            <h2 id="main-content-title" class="text-2xl md:text-3xl font-bold mb-6 border-b-2 border-blue-500 pb-2">Recommended Setup</h2>
+            
+            <!-- Setup Content -->
+            <div id="setup-view" class="content-view active">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    <div class="card p-6 rounded-lg">
+                        <h3 class="text-xl md:text-2xl font-bold mb-4 text-center">Your Gear (Ironman Setup)</h3>
+                        <img src="https://i.redd.it/bde7l832q7c71.png" alt="Ironman Gear Setup" class="mx-auto rounded-lg border-2 border-gray-600 w-full max-w-sm">
+                        <p class="text-center mt-2">This is a solid setup. The Rune Crossbow with broad bolts will be effective. The Dragonhide body and chaps provide good ranged defense, and the Helm of Neitiznot is a great choice for its balanced stats.</p>
+                    </div>
+                    <div class="card p-6 rounded-lg">
+                        <h3 class="text-xl md:text-2xl font-bold mb-4 text-center">Inventory & Potions</h3>
+                        <p class="mb-4 text-center">Here's what you should bring. As an Ironman, resource management is key.</p>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <!-- Potions and Items -->
+                            <div class="text-center w-24">
+                                <img src="https://oldschool.runescape.wiki/images/thumb/Prayer_potion%284%29.png/120px-Prayer_potion%284%29.png" alt="Prayer Potion" class="potion-img mx-auto">
+                                <p class="text-sm">Prayer Potions (10-12)</p>
+                            </div>
+                            <div class="text-center w-24">
+                                <img src="https://oldschool.runescape.wiki/images/thumb/Super_restore%284%29.png/120px-Super_restore%284%29.png" alt="Super Restore Potion" class="potion-img mx-auto">
+                                <p class="text-sm">Super Restores (2-3)</p>
+                            </div>
+                            <div class="text-center w-24">
+                                <img src="https://oldschool.runescape.wiki/images/thumb/Pineapple_pizza.png/120px-Pineapple_pizza.png" alt="Pineapple Pizza" class="potion-img mx-auto">
+                                <p class="text-sm">Pineapple Pizzas</p>
+                            </div>
+                            <div class="text-center w-24">
+                                <img src="https://oldschool.runescape.wiki/images/thumb/Cooked_karambwan.png/120px-Cooked_karambwan.png" alt="Cooked Karambwan" class="potion-img mx-auto">
+                                <p class="text-sm">Karambwans (Optional)</p>
+                            </div>
+                             <div class="text-center w-24">
+                                <img src="https://oldschool.runescape.wiki/images/thumb/Cooked_dashing_kebbit.png/120px-Cooked_dashing_kebbit.png" alt="Dashing Kebbit" class="potion-img mx-auto">
+                                <p class="text-sm">Dashing Kebbits (Run)</p>
+                            </div>
+                            <div class="text-center w-24">
+                                <img src="https://oldschool.runescape.wiki/images/thumb/Black_chinchompa_(item).png/120px-Black_chinchompa_(item).png" alt="Black Chinchompas" class="potion-img mx-auto">
+                                <p class="text-sm">Black Chins (Healers)</p>
+                            </div>
+                             <div class="text-center w-24">
+                                <img src="https://oldschool.runescape.wiki/images/thumb/Rock_cake.png/120px-Rock_cake.png" alt="Rock cake" class="potion-img mx-auto">
+                                <p class="text-sm">Rock cake/locator orb</p>
+                            </div>
+                        </div>
+                         <p class="mt-4">Here's a more accessible setup. Bring plenty of Prayer Potions. Use Pineapple Pizzas for healing. Dashing Kebbits are a good alternative that also restore run energy. Karambwans are great for combo-eating. For Jad's healers, bringing Black chinchompas to throw can quickly tag all of them due to the AoE damage. Use the Rock Cake to lower your health before the caves to save food.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Waves Content -->
+            <div id="waves-view" class="content-view">
+                <div id="wave-details" class="card p-6 rounded-lg mb-8">
+                    <!-- Wave details will be displayed here -->
+                </div>
+                <div class="card p-6 rounded-lg relative">
+                    <h3 class="text-xl md:text-2xl font-bold mb-4 text-center">Map & Spawns</h3>
+                    <div class="relative w-full max-w-xl mx-auto">
+                        <img src="https://i.postimg.cc/Dyp8FDPf/fightcave.png" alt="Fight Caves Map" class="w-full h-auto rounded-lg">
+                        <div id="spawn-C"  class="spawn-marker" style="top: 45%; left: 50%;">C</div>
+                        <div id="spawn-SE" class="spawn-marker" style="top: 80%; left: 70%;">SE</div>
+                        <div id="spawn-SW" class="spawn-marker" style="top: 75%; left: 30%;">SW</div>
+                        <div id="spawn-NE" class="spawn-marker" style="top: 30%; left: 75%;">NE</div>
+                        <div id="spawn-NW" class="spawn-marker" style="top: 25%; left: 35%;">NW</div>
+                    </div>
+                     <div class="mt-4 max-w-3xl mx-auto">
+                        <p class="mb-2">This map shows the possible monster spawn points. For each wave, the highlighted markers indicate where the monsters will appear. Use this to position yourself safely, especially near the <strong class="text-yellow-400">Italy Rock (NE)</strong>.</p>
+                        <p><strong class="text-red-500">Jad Spawn Tip:</strong> Jad will always spawn where the Level 45 Tz-Kek appeared on Wave 3 (The NE spawn point).</p>
+                    </div>
+                 </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://raw.githubusercontent.com/Nixoriuz/FightCaves/refs/heads/main/index.js"></script>
+</body>
+</html>
 
