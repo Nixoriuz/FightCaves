@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSRS XP Calculator (Live)</title>
+    <style>
+        /* --- Basic Setup (Dark Mode) --- */
+        :root {
+            --dark-bg-primary: #161b22; /* Card bg */
+            --dark-bg-secondary: #0d1117; /* Common input bg */
+            --dark-bg-page: #22272d;     /* Body bg */
+            --dark-text-primary: #c9d1d9; /* Main text */
+            --dark-text-secondary: #8b949e; /* Muted text */
+            --dark-border: #30363d;      /* Borders */
+            --dark-accent-blue: #58a6ff;   /* Headings, accents */
+            --dark-accent-green: #3fb950;  /* Strong, success */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--dark-bg-page);
+            color: var(--dark-text-primary);
+            margin: 0;
+            padding: 20px;
+            color-scheme: dark; /* Helps with date picker */
+        }
+
+        .container {
+            max-width: 900px; /* Widened for 3-column layout */
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--dark-accent-blue);
+        }
+        
+        /* --- Input Styles --- */
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--dark-border);
+            background-color: var(--dark-bg-secondary);
+            color: var(--dark-text-primary);
+            border-radius: 5px;
+            box-sizing: border-box; /* Important for padding */
+            height: 42px; /* Set fixed height */
+        }
+        
+        /* Handle disabled state */
+        input:disabled,
+        select:disabled {
+            background-color: var(--dark-bg-primary);
+            color: var(--dark-text-secondary);
+        }
+
+        input::placeholder {
+            color: var(--dark-text-secondary);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--dark-accent-blue);
+            color: var(--dark-bg-secondary);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            height: 42px; /* Set fixed height */
+            box-sizing: border-box;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        button:disabled {
+            background-color: var(--dark-border);
+            color: var(--dark-text-secondary);
+            cursor: not-allowed;
+        }
+
+        /* --- New 3-Column Layout --- */
+        .calculator-card {
+            background-color: var(--dark-bg-primary);
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid var(--dark-border);
+        }
+        
+        .calculator-grid {
+             display: grid;
+             grid-template-columns: 1fr 1fr 1fr;
+             gap: 20px 25px; /* row-gap, column-gap */
+        }
+
+        .input-group {
+            /* Spacing is handled by grid-gap */
+            width: 100%;
+        }
+
+        .grid-span-3 {
+            grid-column: 1 / -1;
+        }
+
+        /* --- Results Area --- */
+        #result-status {
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 0; 
+            background-color: var(--dark-bg-page);
+            padding: 0 10px; 
+            border-radius: 5px;
+            line-height: 1.6;
+            border: 1px solid var(--dark-border);
+            text-align: center;
+            font-size: 1.1rem;
+            height: 42px; 
+            display: flex; 
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #result-status strong {
+            color: var(--dark-accent-green);
+            font-size: 1.2rem;
+        }
+        
+        #result-status.complete {
+            color: var(--dark-accent-green);
+            font-weight: 600;
+        }
+        
+        /* --- Hiscore Fetcher Styles --- */
+        #fetchStatus {
+            font-size: 0.9rem;
+            text-align: center;
+            color: var(--dark-text-secondary);
+            height: 1.2rem; /* Reserve space to prevent layout jump */
+        }
+
+        /* --- GIF Container --- */
+        .gif-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Span from row 3 down to row 5 */
+            grid-row: 3 / span 3;
+            grid-column: 2;
+        }
+
+        .gif-container img {
+            width: 100%;
+            max-width: 128px;
+            image-rendering: pixelated; /* Keeps the pixel-art style */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>OSRS XP Calculator (Live)</h1>
+
+        <div class="calculator-card">
+            <div class="calculator-grid">
+                
+                <div class="input-group">
+                    <label for="hiscoreUser">Username</label>
+                    <input type="text" id="hiscoreUser" value="John_Doe">
+                </div>
+                <div class="input-group">
+                    <label for="targetLevel">Target Level</label>
+                    <input type="text" id="targetLevel" value="99" placeholder="E.g., 99">
+                </div>
+                <div class="input-group">
+                    <label for="currentXP">Current XP</label>
+                    <input type="text" id="currentXP" placeholder="E.g., 6m or 6000000">
+                </div>
+
+                <div class="input-group">
+                    <label>XP Remaining</label>
+                    <div id="result-status"></div>
+                </div>
+                <div class="input-group">
+                    <label for="hiscoreSkill">Skill</label>
+                    <select id="hiscoreSkill"></select>
+                </div>
+                <div class="input-group">
+                    <label>&nbsp;</label> <button id="fetchButton">Fetch XP</button>
+                </div>
+
+                <div class="input-group">
+                    <label for="xpPerHour">XP per Hour</label>
+                    <input type="text" id="xpPerHour" placeholder="E.g., 55k">
+                </div>
+
+                <div class="gif-container">
+                    <img src="https://oldschool.runescape.wiki/images/Party_%28emote%29.gif?a6d55" alt="Party Emote">
+                </div>
+
+                <div class="input-group">
+                    <label for="totalHours">Total Hours to 99</label>
+                    <input type="text" id="totalHours" placeholder="E.g., 200">
+                </div>
+
+                <div class="input-group">
+                     <label for="xpPerDay">XP per Day</label>
+                     <input type="text" id="xpPerDay" placeholder="E.g., 500k">
+                </div>
+                <div class="input-group">
+                    <label for="totalDays">Total Days to 99</label>
+                    <input type="text" id="totalDays" placeholder="E.g., 30">
+                </div>
+
+                <div class="input-group">
+                    <label for="hoursPerDay">Hours per Day</label>
+                    <input type="text" id="hoursPerDay" placeholder="E.g., 8">
+                </div>
+                <div class="input-group">
+                    <label for="targetDate">Target Date for 99</label>
+                    <input type="date" id="targetDate">
+                </div>
+
+                <div id="fetchStatus" class="grid-span-3"></div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        
+            // --- Global State ---
+            let lastChangedBy = ''; // ID of the input that was last changed
+            const msPerDay = 1000 * 60 * 60 * 24;
+            const MAX_OVERALL_XP = 312826344; // <<< ADDED
+            const SKILL_NAMES = [
+                'Overall', 'Attack', 'Defence', 'Strength', 'Hitpoints', 'Ranged', 'Prayer', 
+                'Magic', 'Cooking', 'Woodcutting', 'Fletching', 'Fishing', 'Firemaking', 
+                'Crafting', 'Smithing', 'Mining', 'Herblore', 'Agility', 'Thieving', 
+                'Slayer', 'Farming', 'Runecraft', 'Hunter', 'Construction'
+            ];
+            
+            // OSRS XP Table (index = level)
+            const OSRS_XP_TABLE = [
+                0, 0, 83, 174, 272, 379, 496, 625, 768, 928, 1106, 1306, 1529, 1779, 
+                2059, 2373, 2726, 3122, 3567, 4066, 4627, 5255, 5958, 6745, 7626, 
+                8611, 9713, 10946, 12326, 13868, 15592, 17518, 19669, 22069, 24746, 
+                27728, 31048, 34742, 38848, 43408, 48466, 54073, 60283, 67158, 74768, 
+                83190, 92506, 102796, 114146, 126650, 140411, 155536, 172140, 190346, 
+                210286, 232106, 255961, 281017, 308960, 339994, 374345, 412255, 453985, 
+                499824, 550087, 605118, 665288, 730999, 802674, 880760, 965738, 1058125, 
+                1158474, 1267364, 1385406, 1513244, 1651558, 1801062, 1962506, 2136683, 
+                2324427, 2526619, 2744197, 2978143, 3229493, 3499333, 3788806, 4099118, 
+                4431533, 4787363, 5168018, 5574975, 6009806, 6474176, 6969871, 7498728, 
+                8062627, 8663507, 9303388, 9984368, 10708687, 11478668, 12296788, 13034431
+            ];
+
+            // --- DOM Elements ---
+            const inputs = {
+                currentXP: document.getElementById('currentXP'),
+                targetLevel: document.getElementById('targetLevel'),
+                xpPerHour: document.getElementById('xpPerHour'),
+                xpPerDay: document.getElementById('xpPerDay'), // New input
+                hoursPerDay: document.getElementById('hoursPerDay'),
+                totalHours: document.getElementById('totalHours'),
+                totalDays: document.getElementById('totalDays'),
+                targetDate: document.getElementById('targetDate'),
+                hiscoreUser: document.getElementById('hiscoreUser'),
+                hiscoreSkill: document.getElementById('hiscoreSkill'),
+                fetchButton: document.getElementById('fetchButton'),
+            };
+            const resultStatus = document.getElementById('result-status');
+            const fetchStatus = document.getElementById('fetchStatus');
+
+            // --- Helper Functions ---
+            const formatNum = (n) => n.toLocaleString('en-US');
+
+            function parseInput(value) {
+                if (typeof value !== 'string' || !value) return null;
+                
+                let str = value.trim().toLowerCase();
+                // Remove commas for easier parsing
+                str = str.replace(/,/g, ''); 
+                
+                let num = parseFloat(str); // Gets '1.5' from '1.5m'
+                
+                if (isNaN(num)) return null; // Handle "abc"
+
+                if (str.endsWith('k')) {
+                    return num * 1000;
+                } else if (str.endsWith('m')) {
+                    return num * 1000000;
+                } else {
+                    return num; // Just the number
+                }
+            }
+            
+            function getToday() {
+                 const today = new Date();
+                 today.setHours(0, 0, 0, 0); // Normalize today
+                 return today;
+            }
+
+            // <<< REPLACED FUNCTION ---
+            function getCommonXP() {
+                const currentXP = parseInput(inputs.currentXP.value) || 0;
+                const selectedSkill = inputs.hiscoreSkill.value;
+                let targetXP;
+
+                if (selectedSkill === 'Overall') {
+                    targetXP = MAX_OVERALL_XP;
+                    // Disable and update target level input for clarity
+                    inputs.targetLevel.value = 'Max';
+                    inputs.targetLevel.disabled = true;
+                } else {
+                    // Re-enable input if it was disabled
+                    inputs.targetLevel.disabled = false;
+                    
+                    // Original logic for specific skills
+                    let targetLevel = parseInt(inputs.targetLevel.value) || 99;
+                    if (targetLevel < 1) targetLevel = 1;
+                    if (targetLevel > 99) targetLevel = 99;
+                    
+                    // If user had 'Max' in the box, reset to 99
+                    if (inputs.targetLevel.value === 'Max') {
+                        inputs.targetLevel.value = '99';
+                    }
+
+                    targetXP = OSRS_XP_TABLE[targetLevel];
+                }
+                
+                const remainingXP = targetXP - currentXP;
+                
+                if (remainingXP <= 0) {
+                    resultStatus.innerHTML = 'Complete! XP goal has been met.';
+                    resultStatus.className = 'complete';
+                    return { remainingXP: 0 };
+                }
+                
+                resultStatus.innerHTML = `<strong>${formatNum(remainingXP)}</strong>`;
+                resultStatus.className = '';
+                return { remainingXP };
+            }
+            // <<< END REPLACED FUNCTION ---
+
+            /**
+             * Main calculation function.
+             */
+            function calculateAll() {
+                const common = getCommonXP();
+                if (common.remainingXP <= 0) {
+                    clearInputs(false); // Clear all except common inputs
+                    return;
+                }
+                
+                const remainingXP = common.remainingXP;
+
+                // Get all current values
+                let xpPerHour = parseInput(inputs.xpPerHour.value);
+                let xpPerDay = parseInput(inputs.xpPerDay.value);
+                let hoursPerDay = parseInput(inputs.hoursPerDay.value);
+                let totalHours = parseInput(inputs.totalHours.value);
+                let totalDays = parseInput(inputs.totalDays.value);
+                let targetDateStr = inputs.targetDate.value;
+                
+                // --- Date Helpers ---
+                const today = getToday();
+                let daysFromDate = null;
+                if (targetDateStr) {
+                    const targetDate = new Date(targetDateStr + 'T00:00:00');
+                    daysFromDate = Math.ceil((targetDate.getTime() - today.getTime()) / msPerDay) + 1;
+                }
+
+                // --- New values to be calculated ---
+                let newXpPerHour, newXpPerDay, newHoursPerDay, newTotalHours, newTotalDays, newTargetDateStr;
+
+                // --- Calculation Logic ---
+                switch (lastChangedBy) {
+                    
+                    case 'xpPerHour':
+                        newXpPerHour = xpPerHour;
+                        if (newXpPerHour > 0) {
+                            newTotalHours = remainingXP / newXpPerHour;
+                            if (hoursPerDay > 0) { // hoursPerDay is anchor
+                                newHoursPerDay = hoursPerDay;
+                                newTotalDays = newTotalHours / newHoursPerDay;
+                                newXpPerDay = newXpPerHour * newHoursPerDay;
+                            } else if (totalDays > 0) { // totalDays is anchor
+                                newTotalDays = totalDays;
+                                newHoursPerDay = newTotalHours / newTotalDays;
+                                newXpPerDay = newXpPerHour * newHoursPerDay;
+                            } else if (xpPerDay > 0) { // xpPerDay is anchor
+                                newXpPerDay = xpPerDay;
+                                newHoursPerDay = newXpPerDay / newXpPerHour;
+                                newTotalDays = newTotalHours / newHoursPerDay;
+                            }
+                        }
+                        break;
+                    
+                    case 'xpPerDay':
+                        newXpPerDay = xpPerDay;
+                        if (newXpPerDay > 0) {
+                            newTotalDays = remainingXP / newXpPerDay;
+                            if (hoursPerDay > 0) { // hoursPerDay is anchor
+                                newHoursPerDay = hoursPerDay;
+                                newXpPerHour = newXpPerDay / newHoursPerDay;
+                                newTotalHours = remainingXP / newXpPerHour;
+                            } else if (xpPerHour > 0) { // xpPerHour is anchor
+                                newXpPerHour = xpPerHour;
+                                newHoursPerDay = newXpPerDay / newXpPerHour;
+                                newTotalHours = remainingXP / newXpPerHour;
+                            }
+                        }
+                        break;
+
+                    case 'hoursPerDay':
+                        newHoursPerDay = hoursPerDay;
+                        if (newHoursPerDay > 0) {
+                            if (xpPerHour > 0) { // xpPerHour is anchor
+                                newXpPerHour = xpPerHour;
+                                newXpPerDay = newXpPerHour * newHoursPerDay;
+                                newTotalHours = remainingXP / newXpPerHour;
+                                newTotalDays = newTotalHours / newHoursPerDay;
+                            } else if (xpPerDay > 0) { // xpPerDay is anchor
+                                newXpPerDay = xpPerDay;
+                                newXpPerHour = newXpPerDay / newHoursPerDay;
+                                newTotalHours = remainingXP / newXpPerHour;
+                                newTotalDays = remainingXP / newXpPerDay;
+                            } else if (totalDays > 0) { // totalDays is anchor
+                                newTotalDays = totalDays;
+                                newTotalHours = newHoursPerDay * newTotalDays;
+                                newXpPerHour = remainingXP / newTotalHours;
+                                newXpPerDay = newXpPerHour * newHoursPerDay;
+                            }
+                        }
+                        break;
+
+                    case 'totalHours':
+                        newTotalHours = totalHours;
+                        if (newTotalHours > 0) {
+                            newXpPerHour = remainingXP / newTotalHours;
+                            if (hoursPerDay > 0) { // hoursPerDay is anchor
+                                newHoursPerDay = hoursPerDay;
+                                newTotalDays = newTotalHours / newHoursPerDay;
+                                newXpPerDay = newXpPerHour * newHoursPerDay;
+                            } else if (totalDays > 0) { // totalDays is anchor
+                                newTotalDays = totalDays;
+                                newHoursPerDay = newTotalHours / newTotalDays;
+                                newXpPerDay = newXpPerHour * newHoursPerDay;
+                            }
+                        }
+                        break;
+                        
+                    case 'totalDays':
+                        newTotalDays = totalDays;
+                        if (newTotalDays > 0) {
+                            newXpPerDay = remainingXP / newTotalDays;
+                            if (hoursPerDay > 0) { // hoursPerDay is anchor
+                                newHoursPerDay = hoursPerDay;
+                                newTotalHours = newHoursPerDay * newTotalDays;
+                                newXpPerHour = remainingXP / newTotalHours;
+                            } else if (xpPerHour > 0) { // xpPerHour is anchor
+                                newXpPerHour = xpPerHour;
+                                newTotalHours = remainingXP / newXpPerHour;
+                                newHoursPerDay = newTotalHours / newTotalDays;
+                            }
+                        }
+                        break;
+                        
+                    case 'targetDate':
+                        newTotalDays = (daysFromDate > 0) ? daysFromDate : null;
+                        if (newTotalDays > 0) {
+                             // This block is now identical to 'totalDays' logic
+                            newXpPerDay = remainingXP / newTotalDays;
+                            if (hoursPerDay > 0) {
+                                newHoursPerDay = hoursPerDay;
+                                newTotalHours = newHoursPerDay * newTotalDays;
+                                newXpPerHour = remainingXP / newTotalHours;
+                            } else if (xpPerHour > 0) {
+                                newXpPerHour = xpPerHour;
+                                newTotalHours = remainingXP / newXpPerHour;
+                                newHoursPerDay = newTotalHours / newTotalDays;
+                            }
+                        }
+                        break;
+                        
+                    // <<< MODIFIED CASE BLOCK
+                    case 'hiscoreSkill': // Added
+                    case 'currentXP':
+                    case 'targetLevel': 
+                        // Re-run calculation, maintaining the last anchor
+                        if (xpPerHour > 0) lastChangedBy = 'xpPerHour';
+                        else if (xpPerDay > 0) lastChangedBy = 'xpPerDay';
+                        else if (hoursPerDay > 0) lastChangedBy = 'hoursPerDay';
+                        else if (totalHours > 0) lastChangedBy = 'totalHours';
+                        else if (totalDays > 0) lastChangedBy = 'totalDays';
+                        else lastChangedBy = ''; // No anchor
+                        
+                        if (lastChangedBy) calculateAll(); // Re-run
+                        return;
+                    // <<< END MODIFIED CASE BLOCK
+                }
+
+                // --- Update Date ---
+                if (newTotalDays > 0 && isFinite(newTotalDays)) {
+                    const completionDate = new Date();
+                    completionDate.setDate(today.getDate() + newTotalDays);
+                    newTargetDateStr = completionDate.toISOString().split('T')[0];
+                }
+
+                // --- Update DOM ---
+                updateInput(inputs.xpPerHour, newXpPerHour, 'xpPerHour', 0);
+                updateInput(inputs.xpPerDay, newXpPerDay, 'xpPerDay', 0);
+                updateInput(inputs.hoursPerDay, newHoursPerDay, 'hoursPerDay', 2);
+                updateInput(inputs.totalHours, newTotalHours, 'totalHours', 2);
+                updateInput(inputs.totalDays, newTotalDays, 'totalDays', 2);
+                
+                // Special handling for date vs days
+                if (lastChangedBy === 'targetDate') {
+                    updateInput(inputs.totalDays, newTotalDays, 'totalDays', 2);
+                } else if (lastChangedBy === 'totalDays') {
+                     updateInput(inputs.targetDate, newTargetDateStr, 'targetDate');
+                } else {
+                     updateInput(inputs.targetDate, newTargetDateStr, 'targetDate');
+                }
+            }
+            
+            /**
+             * Updates an input's value, skipping if it was the last one changed.
+             */
+            function updateInput(inputElement, value, id, precision) {
+                if (lastChangedBy === id) return; // Don't update the field the user is typing in
+
+                if (typeof value === 'number' && value > 0 && isFinite(value)) {
+                    inputElement.value = formatNum(value.toFixed(precision));
+                } else if (typeof value === 'string' && value) {
+                     inputElement.value = value;
+                } else {
+                    inputElement.value = '';
+                }
+            }
+            
+            /**
+             * Clears all calculator inputs.
+             */
+             function clearInputs(all = false) {
+                 if (all) {
+                     inputs.currentXP.value = '';
+                     inputs.targetLevel.value = '99';
+                 }
+                 inputs.xpPerHour.value = '';
+                 inputs.xpPerDay.value = '';
+                 inputs.totalHours.value = '';
+                 inputs.hoursPerDay.value = '';
+                 inputs.totalDays.value = '';
+                 inputs.targetDate.value = '';
+             }
+
+            // --- Hiscore Fetcher Functions ---
+
+            /**
+             * Populates the skill dropdown.
+             */
+            function populateSkills() {
+                SKILL_NAMES.forEach(skill => {
+                    const option = document.createElement('option');
+                    option.value = skill;
+                    option.textContent = skill;
+                    inputs.hiscoreSkill.appendChild(option);
+                });
+            }
+
+            /**
+             * Fetches data from OSRS hiscores via a CORS proxy.
+             */
+            async function fetchHiscoreData() {
+                const username = inputs.hiscoreUser.value;
+                const skill = inputs.hiscoreSkill.value;
+                
+                if (!username) {
+                    fetchStatus.textContent = 'Please enter a username.';
+                    return;
+
+                }
+
+                fetchStatus.textContent = 'Fetching...';
+                inputs.fetchButton.disabled = true;
+
+                const targetUrl = `https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal.ws?user1=${encodeURIComponent(username)}`;
+                // We must use a proxy to get around CORS policy
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+
+                try {
+                    const response = await fetch(proxyUrl);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    
+                    const data = await response.json();
+                    if (!data.contents) throw new Error('No content returned from proxy.');
+
+                    const xp = parseHiscoreHTML(data.contents, skill);
+
+                    if (xp !== null) {
+                        inputs.currentXP.value = xp;
+                        // Programmatically dispatch an 'input' event to trigger calculateAll
+                        lastChangedBy = 'currentXP'; // Set anchor
+                        calculateAll();
+                        fetchStatus.textContent = `Success! ${skill} XP set to ${formatNum(xp)}.`;
+                    } else {
+                        fetchStatus.textContent = 'User not found or skill data not available.';
+                    }
+
+                } catch (error) {
+                    console.error('Fetch Error:', error);
+                    fetchStatus.textContent = 'Error fetching data. User may not exist.';
+                } finally {
+                    inputs.fetchButton.disabled = false;
+                }
+            }
+
+            /**
+             * Parses the raw HTML string from the hiscore page.
+             */
+            function parseHiscoreHTML(htmlText, targetSkill) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                
+                // Find the table containing skill data
+                const table = doc.querySelector('#contentHiscores table');
+                if (!table) return null;
+
+                const rows = table.querySelectorAll('tbody tr');
+
+                for (const row of rows) {
+                    const cells = row.querySelectorAll('td');
+                    
+                    // A valid skill row has 5 columns (Img, Name, Rank, Level, XP)
+                    if (cells.length === 5) {
+                        const skillName = cells[1].textContent.trim();
+                        if (skillName === targetSkill) {
+                            const xpValue = cells[4].textContent.trim().replace(/,/g, '');
+                            return xpValue;
+                        }
+                    }
+                }
+                
+                return null; // Skill not found
+            }
+
+            // --- Attach Listeners ---
+            for (const key in inputs) {
+                if (key !== 'hiscoreUser' && key !== 'hiscoreSkill' && key !== 'fetchButton') {
+                    inputs[key].addEventListener('input', (e) => {
+                        // Set the "anchor" for calculation
+                        lastChangedBy = e.target.id;
+                        calculateAll();
+                    });
+                }
+            }
+            
+            // Listener for the new fetch button
+            inputs.fetchButton.addEventListener('click', fetchHiscoreData);
+            
+            // <<< ADDED LISTENER
+            // Listener for skill changes
+            inputs.hiscoreSkill.addEventListener('input', (e) => {
+                lastChangedBy = e.target.id;
+                calculateAll();
+            });
+
+            // --- Initial Setup ---
+            inputs.currentXP.value = ''; // Ensure Current XP is empty on load
+            inputs.targetLevel.value = '99'; // FORCE Target Level to 99 on load
+            populateSkills();
+            calculateAll(); 
+
+        });
+    </script>
+
+</body>
+</html>
+
